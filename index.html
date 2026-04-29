@@ -30,12 +30,32 @@
             from { opacity: 0; }
             to { opacity: 1; }
         }
+
+        /* NEW: Animasi Layar Sukses */
+        @keyframes checkmarkPop {
+            0% { transform: scale(0); opacity: 0; }
+            50% { transform: scale(1.2); opacity: 1; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .animate-pop { 
+            animation: checkmarkPop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; 
+        }
+        
+        @keyframes slideUpFade {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        .animate-slide-up { 
+            animation: slideUpFade 0.5s ease-out forwards; 
+            animation-delay: 0.2s; 
+            opacity: 0; 
+        }
     </style>
 </head>
 <body class="bg-gray-50 font-sans text-slate-800 antialiased overflow-hidden flex flex-col h-screen relative">
 
     <!-- Toast Notification -->
-    <div id="toast" class="fixed top-4 left-1/2 transform -translate-x-1/2 z-[60] bg-gray-900 text-white px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2 shadow-lg transition-all duration-300 opacity-0 pointer-events-none translate-y-[-20px]">
+    <div id="toast" class="fixed top-4 left-1/2 transform -translate-x-1/2 z-[80] bg-gray-900 text-white px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2 shadow-lg transition-all duration-300 opacity-0 pointer-events-none translate-y-[-20px]">
         <i class="ph-fill ph-check-circle text-green-400"></i>
         <span id="toast-msg">Item ditambahkan</span>
     </div>
@@ -200,7 +220,7 @@
                 </div>
             </div>
             
-            <div class="bg-indigo-50 p-4 rounded-xl border border-indigo-100 flex items-start gap-3">
+            <div class="bg-indigo-50 p-4 rounded-xl border border-indigo-100 flex items-start gap-3 mb-6">
                 <i class="ph-fill ph-info text-indigo-500 text-xl shrink-0 mt-0.5"></i>
                 <p class="text-xs text-indigo-800 leading-relaxed font-medium">Setelah memesan, silakan ke meja kasir untuk mengonfirmasi pembayaran Anda menggunakan sistem <strong>Velo Pay</strong> atau Tunai.</p>
             </div>
@@ -214,27 +234,31 @@
     </div>
 
     <!-- NEW: Modal Velo Pay QRIS -->
-    <div id="modal-qris-payment" class="fixed inset-0 bg-black/70 backdrop-blur-sm items-center justify-center z-[60] p-4 modal-enter" style="display: none;">
-        <div class="bg-white rounded-3xl shadow-2xl w-[95%] max-w-sm overflow-hidden flex flex-col items-center p-6 text-center relative">
-            <div class="absolute top-4 right-4">
-                <button onclick="window.cancelQrisPayment()" class="p-2 bg-gray-100 rounded-full text-gray-500 hover:text-red-500 active:scale-95 transition-transform"><i class="ph-bold ph-x text-lg pointer-events-none"></i></button>
+    <div id="modal-qris-payment" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-[60] p-4 fade-in hidden">
+        <div class="flex items-center justify-center h-full w-full">
+            <div class="bg-white rounded-3xl shadow-2xl w-[95%] max-w-sm overflow-hidden flex flex-col items-center p-6 text-center relative">
+                <div class="absolute top-4 right-4">
+                    <button onclick="window.cancelQrisPayment()" class="p-2 bg-gray-100 rounded-full text-gray-500 hover:text-red-500 active:scale-95 transition-transform"><i class="ph-bold ph-x text-lg pointer-events-none"></i></button>
+                </div>
+                
+                <h2 class="text-xl md:text-2xl font-black text-gray-800 mb-1 mt-2">Pembayaran QRIS</h2>
+                <p class="text-xs md:text-sm text-gray-500 mb-6">Scan kode QR ini menggunakan M-Banking atau aplikasi E-Wallet Anda.</p>
+                
+                <div class="w-56 h-56 md:w-64 md:h-64 bg-gray-50 rounded-2xl p-2 mb-6 relative flex items-center justify-center border-2 border-indigo-100 shadow-inner">
+                    <i id="qris-spinner" class="ph ph-spinner-gap animate-spin text-4xl text-indigo-400 absolute z-0"></i>
+                    <img id="qris-image-view" src="" class="w-full h-full object-contain relative z-10 rounded-xl opacity-0 transition-opacity duration-300" onload="this.classList.remove('opacity-0'); document.getElementById('qris-spinner').style.display='none';" />
+                </div>
+                
+                <p class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Total Tagihan</p>
+                <h1 id="qris-total-view" class="text-3xl md:text-4xl font-black text-indigo-600 mb-6">Rp 0</h1>
+                
+                <!-- NEW: Indikator Pengecekan Otomatis (Tanpa Tombol) -->
+                <div class="flex flex-col items-center gap-2 mb-2 w-full">
+                    <i class="ph ph-spinner-gap animate-spin text-2xl text-indigo-500"></i>
+                    <p class="text-sm font-bold text-gray-700">Menunggu Pembayaran...</p>
+                    <p class="text-[10px] text-gray-400">Sistem otomatis memverifikasi pembayaran Anda setiap saat.</p>
+                </div>
             </div>
-            
-            <h2 class="text-xl md:text-2xl font-black text-gray-800 mb-1 mt-2">Pembayaran QRIS</h2>
-            <p class="text-xs md:text-sm text-gray-500 mb-6">Scan kode QR ini menggunakan M-Banking atau aplikasi E-Wallet Anda.</p>
-            
-            <div class="w-56 h-56 md:w-64 md:h-64 bg-gray-50 rounded-2xl p-2 mb-6 relative flex items-center justify-center border-2 border-indigo-100 shadow-inner">
-                <i id="qris-spinner" class="ph ph-spinner-gap animate-spin text-4xl text-indigo-400 absolute z-0"></i>
-                <img id="qris-image-view" src="" class="w-full h-full object-contain relative z-10 rounded-xl opacity-0 transition-opacity duration-300" onload="this.classList.remove('opacity-0'); document.getElementById('qris-spinner').style.display='none';" />
-            </div>
-            
-            <p class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Total Tagihan</p>
-            <h1 id="qris-total-view" class="text-3xl md:text-4xl font-black text-indigo-600 mb-6">Rp 0</h1>
-            
-            <button id="btn-cek-qris" onclick="window.checkQrisStatus(true)" class="w-full py-3.5 bg-indigo-600 text-white rounded-xl font-bold flex items-center justify-center gap-2 shadow-md active:scale-95 transition-transform mb-3 text-sm md:text-base">
-                <i class="ph-bold ph-arrows-clockwise text-lg pointer-events-none"></i> Saya Sudah Bayar
-            </button>
-            <p class="text-[10px] text-gray-400">Sistem otomatis mengecek pembayaran Anda.</p>
         </div>
     </div>
 
@@ -247,24 +271,30 @@
         <div id="my-orders-container" class="p-4 overflow-y-auto flex-1 space-y-3 scrollbar-hide bg-gray-50"></div>
     </div>
 
-    <!-- 5. Success Screen Full -->
+    <!-- 5. Success Screen Full (DIPERBARUI DENGAN ANIMASI) -->
     <div id="screen-success" class="fixed inset-0 bg-indigo-600 z-[70] hidden flex flex-col items-center justify-center px-6 text-center fade-in">
-        <div class="w-20 h-20 bg-white rounded-full flex items-center justify-center mb-6 shadow-[0_0_40px_rgba(255,255,255,0.4)]">
-            <i class="ph-bold ph-check text-4xl text-indigo-600"></i>
-        </div>
-        <h2 class="text-2xl font-black text-white mb-2">Pesanan Diterima!</h2>
-        <p class="text-indigo-100 text-sm mb-8">Pesanan Anda telah masuk ke antrean dapur kami.</p>
         
-        <div class="bg-white rounded-3xl p-6 w-full max-w-sm shadow-xl mb-8">
-            <p class="text-xs text-gray-500 font-bold uppercase tracking-widest mb-2">Kode Booking Anda</p>
-            <h3 id="success-order-id" class="text-5xl font-black text-red-600 tracking-widest border-b border-dashed border-gray-300 pb-4 mb-4">00000</h3>
-            <p class="text-sm text-gray-600 font-medium">Atas Nama: <span id="success-name" class="font-black text-gray-900 text-lg uppercase ml-1">Budi</span></p>
-            <p class="text-sm text-gray-600 font-medium mt-2">Total Tagihan: <span id="success-total" class="font-bold text-indigo-600 text-lg ml-1">Rp 0</span></p>
+        <!-- Ikon Ceklis Animasi Pop -->
+        <div class="w-24 h-24 bg-white rounded-full flex items-center justify-center mb-6 shadow-[0_0_40px_rgba(255,255,255,0.4)] animate-pop">
+            <i class="ph-bold ph-check text-5xl text-green-500"></i>
         </div>
 
-        <button onclick="window.resetApp()" class="px-6 py-3 bg-indigo-800 text-white rounded-xl font-bold active:scale-95 border border-indigo-500 shadow-md">
-            Tutup Layar
-        </button>
+        <div class="animate-slide-up w-full max-w-sm flex flex-col items-center">
+            <!-- Teks Payment Success -->
+            <h2 class="text-3xl font-black text-white mb-1 uppercase tracking-wider text-shadow">PAYMENT SUCCESS</h2>
+            <p class="text-indigo-200 text-sm font-medium mb-8">Pesanan diterima dan masuk ke antrean dapur.</p>
+            
+            <div class="bg-white rounded-3xl p-6 w-full shadow-xl mb-8">
+                <p class="text-xs text-gray-500 font-bold uppercase tracking-widest mb-2">Kode Booking Anda</p>
+                <h3 id="success-order-id" class="text-5xl font-black text-gray-800 tracking-widest border-b border-dashed border-gray-300 pb-4 mb-4">00000</h3>
+                <p class="text-sm text-gray-600 font-medium">Atas Nama: <span id="success-name" class="font-black text-gray-900 text-lg uppercase ml-1"></span></p>
+                <p class="text-sm text-gray-600 font-medium mt-2">Total Tagihan: <span id="success-total" class="font-bold text-green-600 text-lg ml-1"></span></p>
+            </div>
+
+            <button onclick="window.resetApp()" class="px-6 py-3 w-full bg-indigo-800 text-white rounded-xl font-bold active:scale-95 border border-indigo-500 shadow-md transition-transform">
+                Tutup Layar
+            </button>
+        </div>
     </div>
 
     <script>
@@ -500,7 +530,6 @@
             
             const voucher = state.vouchers.find(v => v.code === codeVal && v.isActive);
             if(voucher) {
-                // Cek kuota / limit
                 if (voucher.limit > 0 && (voucher.usageCount || 0) >= voucher.limit) {
                     window.clearVoucherCustomer();
                     codeInput.value = codeVal;
@@ -513,7 +542,7 @@
 
                 let subtotal = 0; state.cart.forEach(item => subtotal += (getCartItemUnitPrice(item) * Number(item.quantity)));
                 state.currentDiscount = subtotal * (voucher.discountPercent / 100);
-                state.appliedVoucherId = voucher.id; // Simpan ID agar kuotanya bisa dipotong saat checkout
+                state.appliedVoucherId = voucher.id; 
                 window.updateCheckoutTotalDisplay();
                 
                 codeInput.classList.remove('border-indigo-200', 'border-red-500', 'bg-red-50', 'text-red-700');
@@ -562,8 +591,8 @@
             }
         };
 
-        // --- NEW: Velo Pay / QRIS Logic for Customer ---
-        async function createQrisPayment(totalAmount, bookingCode, customerName, transactionData) {
+        // --- VELO PAY / QRIS API LOGIC ---
+        window.createQrisPayment = async (totalAmount, bookingCode, customerName, transactionData) => {
             try {
                 const veloRes = await fetch(`${VELO_BASE_URL}/payments`, {
                     method: 'POST',
@@ -582,6 +611,12 @@
                     qrisImg.classList.add('opacity-0');
                     document.getElementById('qris-spinner').style.display = 'block';
                     qrisImg.src = veloData.data.qr_url;
+
+                    // NEW: Simpan URL QRIS ke Firebase agar bisa dipanggil ulang tanpa error
+                    await publicDbRef('history').doc(transactionData.id).update({
+                        qrisUrl: veloData.data.qr_url
+                    });
+
                     return true;
                 } else {
                     alert("Gagal memuat QRIS: " + (veloData.message || 'Unknown error')); return false;
@@ -589,10 +624,9 @@
             } catch(e) { alert("Terjadi kendala jaringan ke server QRIS."); return false; }
         }
 
-        window.checkQrisStatus = async (isManual = false) => {
+        // NEW: Fungsi pengecekan yang berjalan otomatis secara berkala di latar belakang
+        window.checkQrisStatus = async () => {
             if (!state.veloExtId || !state.currentTransaction) return;
-            const btnCek = document.getElementById('btn-cek-qris');
-            if(isManual) { btnCek.innerHTML = `<i class="ph ph-spinner animate-spin text-lg pointer-events-none"></i> Mengecek...`; btnCek.disabled = true; }
             
             try {
                 const res = await fetch(`${VELO_BASE_URL}/payments/external/${state.veloExtId}`, {
@@ -604,24 +638,85 @@
                     if (statusVal === 'PAID' || statusVal === 'SUCCESS') {
                         if(state.qrisPollingInterval) clearInterval(state.qrisPollingInterval);
                         window.playHaptic();
-                        await finalizeCustomerOrder(state.currentTransaction);
+                        
+                        // Update status Firebase
+                        await publicDbRef('history').doc(state.currentTransaction.id).update({ paymentStatus: 'PAID' });
+                        
+                        window.cancelQrisPayment();
+                        document.getElementById('success-order-id').innerText = state.currentTransaction.bookingCode || state.currentTransaction.id.slice(-5).toUpperCase();
+                        document.getElementById('success-name').innerText = state.currentTransaction.customerName;
+                        document.getElementById('success-total').innerText = formatRp(state.currentTransaction.total);
+                        
+                        // Menampilkan layar dengan trigger ulang animasi CSS
+                        const screenSuccess = document.getElementById('screen-success');
+                        screenSuccess.classList.remove('hidden');
+                        
                     } else if (statusVal === 'EXPIRED') {
                         if(state.qrisPollingInterval) clearInterval(state.qrisPollingInterval);
                         alert("Waktu pembayaran QRIS telah habis.");
                         window.cancelQrisPayment();
-                    } else {
-                        if (isManual) window.showToast("Pembayaran belum diterima");
                     }
                 }
-            } catch(e) { if (isManual) window.showToast("Gagal mengecek status jaringan"); }
-            
-            if(isManual) { btnCek.innerHTML = `<i class="ph-bold ph-arrows-clockwise text-lg pointer-events-none"></i> Saya Sudah Bayar`; btnCek.disabled = false; }
+            } catch(e) { console.log("Silent error saat polling status:", e); }
         };
 
         window.cancelQrisPayment = () => {
             window.playHaptic();
             if(state.qrisPollingInterval) { clearInterval(state.qrisPollingInterval); state.qrisPollingInterval = null; }
-            document.getElementById('modal-qris-payment').style.display = 'none';
+            window.closeAllModals();
+        };
+
+        window.reopenQris = async (trxId) => {
+            window.playHaptic();
+            const trx = state.history.find(h => h.id === trxId);
+            if (!trx) return;
+
+            window.closeAllModals();
+            document.getElementById('qris-total-view').innerText = formatRp(trx.total);
+            window.openModal('modal-qris-payment');
+            
+            const qrisImg = document.getElementById('qris-image-view');
+            qrisImg.classList.add('opacity-0');
+            document.getElementById('qris-spinner').style.display = 'block';
+
+            state.currentTransaction = trx;
+            state.veloExtId = trx.veloExtId || trx.id; // Gunakan ext_id baru jika pernah di-generate ulang
+            
+            if (trx.qrisUrl) {
+                // Tampilkan URL QRIS yang sudah tersimpan di Firebase tanpa memanggil API lagi
+                qrisImg.src = trx.qrisUrl;
+            } else {
+                // Fallback: Jika URL belum ada, buat tagihan baru dengan ID unik agar tidak 'already used'
+                const newExtId = trx.id + '-' + Math.floor(Math.random() * 1000);
+                state.veloExtId = newExtId;
+                
+                try {
+                    const veloRes = await fetch(`${VELO_BASE_URL}/payments`, {
+                        method: 'POST',
+                        headers: { 'Authorization': `Bearer ${VELO_API_KEY}`, 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ 
+                            amount: trx.total, external_id: newExtId, expired_hours: 1, 
+                            note: `Psn: ${trx.bookingCode || trx.id.slice(-5).toUpperCase()} (${trx.customerName || 'Cust'})` 
+                        })
+                    });
+                    const veloData = await veloRes.json();
+                    if (veloRes.ok && veloData.status === 'success') {
+                        qrisImg.src = veloData.data.qr_url;
+                        await publicDbRef('history').doc(trx.id).update({
+                            qrisUrl: veloData.data.qr_url,
+                            veloExtId: newExtId
+                        });
+                    } else {
+                        alert("Gagal memuat ulang QRIS: " + (veloData.message || 'Unknown error'));
+                    }
+                } catch (e) {
+                    alert("Gagal memuat ulang QRIS.");
+                }
+            }
+
+            if(state.qrisPollingInterval) clearInterval(state.qrisPollingInterval);
+            // Polling diset lebih cepat menjadi 2500ms (2.5 detik)
+            state.qrisPollingInterval = setInterval(() => window.checkQrisStatus(), 2500); 
         };
 
         window.submitOrder = async () => {
@@ -638,43 +733,31 @@
             const transactionId = `TRX-${Date.now()}`;
             const bookingCode = transactionId.slice(-5).toUpperCase();
 
+            // Status awal selalu UNPAID
             const transaction = {
                 id: transactionId, bookingCode: bookingCode, date: new Date().toISOString(), items: state.cart,
                 subtotal: subtotal, discount: state.currentDiscount, tax: 0, total: total,
                 paymentMethod: paymentMethod, paymentAmount: 0, change: 0,
+                paymentStatus: 'UNPAID', 
                 status: 'SUCCESS', fulfillmentStatus: 'WAITING', customerName: customerName, notes: notes
             };
 
             const btn = document.getElementById('btn-submit-order');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = `<i class="ph ph-spinner-gap animate-spin text-xl md:text-2xl"></i> Memproses...`; 
+            btn.disabled = true;
 
-            // --- JIKA METODE QRIS (VELO PAY) ---
-            if (paymentMethod === 'QRIS / Transfer') {
-                if(btn) { btn.innerHTML = `<i class="ph ph-spinner-gap animate-spin text-xl md:text-2xl"></i> Memuat QRIS...`; btn.disabled = true; }
-                const success = await createQrisPayment(total, bookingCode, customerName, transaction);
-                if(btn) { btn.innerHTML = `<i class="ph-bold ph-paper-plane-tilt pointer-events-none"></i> Buat Pesanan`; btn.disabled = false; }
-                
-                if (success) {
-                    document.getElementById('qris-total-view').innerText = formatRp(total);
-                    window.openModal('modal-qris-payment');
-                    state.qrisPollingInterval = setInterval(() => window.checkQrisStatus(false), 5000); 
-                }
-                return; 
-            }
-
-            // --- JIKA METODE CASH (Bayar di Kasir) ---
-            if(btn) { btn.innerHTML = `<i class="ph ph-spinner-gap animate-spin text-xl"></i> Memproses...`; btn.disabled = true; }
-            await finalizeCustomerOrder(transaction);
-            if(btn) { btn.innerHTML = `<i class="ph-bold ph-paper-plane-tilt pointer-events-none"></i> Buat Pesanan`; btn.disabled = false; }
-        };
-
-        async function finalizeCustomerOrder(transaction) {
             try {
+                // 1. Simpan Transaksi Ke Firebase
                 await publicDbRef('history').doc(transaction.id).set(transaction);
+                
+                // 2. Kurangi Stok
                 for (const item of state.cart) {
                     const prod = state.products.find(p => String(p.id) === String(item.product.id));
                     if (prod) await publicDbRef('products').doc(prod.id).update({ stock: Number(prod.stock) - Number(item.quantity) });
                 }
 
+                // 3. Kurangi Kuota Voucher
                 if (state.appliedVoucherId) {
                     const vRef = publicDbRef('vouchers').doc(state.appliedVoucherId);
                     const vSnap = await vRef.get();
@@ -687,18 +770,40 @@
                     }
                 }
 
-                state.myOrderIds.push(transaction.id); localStorage.setItem('myOrderIds', JSON.stringify(state.myOrderIds));
-                state.cart = []; state.currentDiscount = 0; state.appliedVoucherId = null; localStorage.removeItem('eMenuCart'); updateCartBadge(); 
+                // 4. Update Local State (Riwayat HP Pembeli)
+                state.myOrderIds.push(transaction.id); 
+                localStorage.setItem('myOrderIds', JSON.stringify(state.myOrderIds));
+                state.cart = []; state.currentDiscount = 0; state.appliedVoucherId = null; 
+                localStorage.removeItem('eMenuCart'); 
+                updateCartBadge(); 
+                
                 window.closeAllModals();
 
-                document.getElementById('success-order-id').innerText = transaction.bookingCode; 
-                document.getElementById('success-name').innerText = transaction.customerName;
-                document.getElementById('success-total').innerText = formatRp(transaction.total);
-                document.getElementById('screen-success').classList.remove('hidden');
+                // 5. Alur Layar
+                if (paymentMethod === 'QRIS / Transfer') {
+                    const success = await window.createQrisPayment(total, bookingCode, customerName, transaction);
+                    if (success) {
+                        document.getElementById('qris-total-view').innerText = formatRp(total);
+                        window.openModal('modal-qris-payment');
+                        // NEW: Polling diset lebih cepat menjadi 2500ms (2.5 detik)
+                        state.qrisPollingInterval = setInterval(() => window.checkQrisStatus(), 2500);
+                    } else {
+                        alert("Gagal memuat QRIS. Pesanan sudah masuk. Silakan coba bayar lewat menu 'Pesanan Saya'.");
+                    }
+                } else {
+                    // Jika metode Kasir, Langsung layar Sukses
+                    document.getElementById('success-order-id').innerText = bookingCode; 
+                    document.getElementById('success-name').innerText = customerName;
+                    document.getElementById('success-total').innerText = formatRp(total);
+                    document.getElementById('screen-success').classList.remove('hidden');
+                }
+
             } catch (err) {
                 console.error(err); alert("Terjadi kesalahan jaringan. Silakan coba lagi.");
+            } finally {
+                btn.innerHTML = originalText; btn.disabled = false;
             }
-        }
+        };
 
         window.resetApp = () => { window.playHaptic(); document.getElementById('screen-success').classList.add('hidden'); window.scrollTo(0,0); };
 
@@ -734,6 +839,15 @@
                     const notesHtml = trx.notes && trx.notes.trim() !== '' ? `<div class="mt-2 p-2 bg-yellow-50 rounded border border-yellow-200 text-xs text-yellow-800 break-words leading-relaxed"><i class="ph-fill ph-note-pencil mr-1 text-sm"></i><strong>Catatan:</strong> ${trx.notes}</div>` : '';
                     const discountHtml = trx.discount > 0 ? `<div class="flex justify-between items-center pt-2"><span class="text-xs font-bold text-red-500">Diskon:</span><span class="font-bold text-red-500">-${formatRp(trx.discount)}</span></div>` : '';
 
+                    // NEW: Tampilkan Tombol Bayar Sekarang khusus untuk QRIS yang UNPAID
+                    let qrisButtonHtml = '';
+                    if (trx.paymentMethod === 'QRIS / Transfer' && trx.paymentStatus === 'UNPAID' && trx.status !== 'VOID') {
+                        qrisButtonHtml = `
+                        <button onclick="window.reopenQris('${trx.id}')" class="mt-3 w-full py-3 bg-indigo-100 text-indigo-700 rounded-xl font-bold active:scale-[0.98] transition-transform flex justify-center items-center gap-2 text-sm border border-indigo-200">
+                            <i class="ph-bold ph-qr-code text-lg"></i> Lanjutkan Pembayaran QRIS
+                        </button>`;
+                    }
+
                     return `
                     <div class="bg-white p-4 rounded-2xl border border-gray-100 shadow-[0_2px_10px_rgba(0,0,0,0.03)] flex flex-col gap-2">
                         <div class="flex justify-between items-start mb-2">
@@ -749,15 +863,23 @@
                             <span class="text-xs font-bold text-gray-500">Total Tagihan:</span>
                             <span class="font-black text-gray-800">${formatRp(trx.total)}</span>
                         </div>
+                        ${qrisButtonHtml}
                     </div>`;
                 }).join('');
             }
         }
 
-        window.openModal = (id) => { document.getElementById('modal-backdrop').classList.remove('hidden'); document.getElementById(id).classList.remove('hidden'); };
+        window.openModal = (id) => { 
+            document.getElementById('modal-backdrop').classList.remove('hidden'); 
+            document.getElementById(id).classList.remove('hidden'); 
+        };
+        
         window.closeAllModals = () => {
             document.getElementById('modal-backdrop').classList.add('hidden');
-            ['modal-addon', 'modal-cart', 'modal-checkout', 'modal-my-orders', 'modal-qris-payment'].forEach(id => document.getElementById(id).classList.add('hidden'));
+            ['modal-addon', 'modal-cart', 'modal-checkout', 'modal-my-orders', 'modal-qris-payment'].forEach(id => {
+                const el = document.getElementById(id);
+                if(el) el.classList.add('hidden');
+            });
             if(state.qrisPollingInterval) { clearInterval(state.qrisPollingInterval); state.qrisPollingInterval = null; }
         };
 
